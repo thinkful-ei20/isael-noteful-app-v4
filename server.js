@@ -6,12 +6,18 @@ const mongoose = require('mongoose');
 
 const { PORT, MONGODB_URI } = require('./config');
 
+const passport = require('passport');
+const localStrategy = require('./passport/local');
+
 const notesRouter = require('./routes/notes');
 const foldersRouter = require('./routes/folders');
 const tagsRouter = require('./routes/tags');
-
+const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
 // Create an Express application
 const app = express();
+
+passport.use(localStrategy);
 
 // Log all requests. Skip logging during
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'common', {
@@ -28,7 +34,8 @@ app.use(express.json());
 app.use('/api/notes', notesRouter);
 app.use('/api/folders', foldersRouter);
 app.use('/api/tags', tagsRouter);
-
+app.use('/api/users', usersRouter);
+app.use('/api', authRouter);
 // Catch-all 404
 app.use(function (req, res, next) {
   const err = new Error('Not Found');
