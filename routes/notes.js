@@ -12,8 +12,9 @@ router.use('/', passport.authenticate('jwt', { session: false, failWithError: tr
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
   const { searchTerm, folderId, tagId } = req.query;
+  const { id: userId } = req.user;
 
-  let filter = {};
+  let filter = {userId};
 
   if (searchTerm) {
     // filter.title = { $regex: searchTerm };
@@ -42,14 +43,15 @@ router.get('/', (req, res, next) => {
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
   const { id } = req.params;
-
+  const { id: userId } = req.user;
+  console.log(req.user);
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error('The `id` is not valid');
     err.status = 400;
     return next(err);
   }
 
-  Note.findById(id)
+  Note.findOne({_id: id, userId})
     .populate('tags')
     .then(result => {
       if (result) {
@@ -65,7 +67,8 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const { title, content, folderId, tags = [] } = req.body;
+  const { id: userId } = req.user;
+  const { title, content, folderId, tags = []} = req.body;
 
   /***** Never trust users - validate input *****/
   if (!title) {
@@ -90,7 +93,7 @@ router.post('/', (req, res, next) => {
     });
   }
 
-  Note.create({ title, content, folderId, tags })
+  Note.create({ title, content, folderId, tags, userId })
     .then(result => {
       res
         .location(`${req.originalUrl}/${result.id}`)
@@ -106,6 +109,7 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const { id } = req.params;
   const { title, content, folderId, tags = [] } = req.body;
+  const { id: userId } = req.user;
 
   /***** Never trust users - validate input *****/
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -136,7 +140,7 @@ router.put('/:id', (req, res, next) => {
     });
   }
 
-  Note.findByIdAndUpdate(id, { title, content, folderId, tags }, { new: true })
+  Note.findOneAndUpdate({userId}, { title, content, folderId, tags }, { new: true })
     .then(result => {
       if (result) {
         res.json(result);
@@ -152,8 +156,9 @@ router.put('/:id', (req, res, next) => {
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
   const { id } = req.params;
+  const { id: userId } = req.user;
 
-  Note.findByIdAndRemove(id)
+  Note.findOneAndRemove({userId: userId, _id: id})
     .then(() => {
       res.status(204).end();
     })
