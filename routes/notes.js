@@ -13,7 +13,6 @@ router.use('/', passport.authenticate('jwt', { session: false, failWithError: tr
 router.get('/', (req, res, next) => {
   const { searchTerm, folderId, tagId } = req.query;
   const { id: userId } = req.user;
-
   let filter = {userId};
 
   if (searchTerm) {
@@ -140,7 +139,7 @@ router.put('/:id', (req, res, next) => {
     });
   }
 
-  Note.findOneAndUpdate({userId}, { title, content, folderId, tags }, { new: true })
+  Note.findOneAndUpdate({userId, _id: id}, { title, content, folderId, tags }, { new: true })
     .then(result => {
       if (result) {
         res.json(result);
