@@ -6,8 +6,8 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 router.post('/', (req, res, next) => {
-  const { username, password, fullname } = req.body;
-
+  const { username, password } = req.body;
+  let { fullname } = req.body;
   const requireFields = ['username', 'password'];
 
   const missingField = requireFields.find(
@@ -62,6 +62,8 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
+  if(fullname) fullname = fullname.trim();
+  
   return User.hashPassword(password)
     .then(digest =>{
       const newUser = {
