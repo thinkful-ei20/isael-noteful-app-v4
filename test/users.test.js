@@ -48,7 +48,7 @@ describe.only('Noteful API - Users', function () {
     return mongoose.disconnect();
   });
 
-  describe('/api/users', function () {
+  describe.only('/api/users', function () {
     describe('POST', function () {
       it('Should create a new user', function () {
         const testUser = { username, password, fullname };
@@ -81,15 +81,12 @@ describe.only('Noteful API - Users', function () {
           });
       });
       it('Should reject users with missing username', function () {
-        const testUser = { password, fullname };
+        const testUser = { password, fullname};
         return chai.request(app).post('/api/users').send(testUser)
-          .catch(err => err.response)
           .then(res => {
-
-            /**
-             * CREATE YOUR ASSERTIONS HERE
-             */
-
+            expect(res).to.have.status(422);
+            expect(res.body.message).to.equal('Missing username in request body');
+            expect(res.body.location).to.equal('username');
           });
       });
 
@@ -99,32 +96,21 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with missing password', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({password, firstName, lastName})
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({username, firstName, lastName})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
-            expect(res.body.message).to.equal('Missing field');
-            expect(res.body.location).to.equal('username');
+            expect(res.body.message).to.equal('Missing password in request body');
+            expect(res.body.location).to.equal('password');
           });
           
       });
       it('Should reject users with non-string username', function(){
         return chai.request(app)
           .post('/api/users')
-          .send(password, lastName, firstName, nonStringUser)
-          .catch( err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password, lastName, firstName, username: nonStringUser})
+          .then( res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+            // expect(res.body.reason).to.equal('ValidationError');
             expect(res.body.message).to.equal('username has to be a string');
             expect(res.body.location).to.equal('username');
           });
@@ -132,15 +118,10 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with non-string password', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({nonStringPass, lastName, firstName, username})
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password: nonStringPass, lastName, firstName, username})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+            // expect(res.body.reason).to.equal('ValidationError');
             expect(res.body.message).to.equal('password has to be a string');
             expect(res.body.location).to.equal('password');
           });
@@ -148,15 +129,10 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with non-trimmed username', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({password, lastName, firstName, nonTrimmedUser})
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password, fullname, username: nonTrimmedUser})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidatonError');
+            // expect(res.body.reason).to.equal('ValidatonError');
             expect(res.body.message).to.equal('username has spaces.');
             expect(res.body.location).to.equal('username');
           });
@@ -164,15 +140,10 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with non-trimmed password', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({password, lastName, firstName, nonTrimmedPass})
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({username, fullname, password: nonTrimmedPass})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+            // expect(res.body.reason).to.equal('ValidationError');
             expect(res.body.message).to.equal('password has spaces.');
             expect(res.body.location).to.equal('password');
           });
@@ -180,15 +151,10 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with empty username', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({password, firstName, lastName, emptyUser})
-          .catch(err => {
-            if( err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password, fullname, username: emptyUser})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+            // expect(res.body.reason).to.equal('ValidationError');
             expect(res.body.message).to.equal('username has to be at least one character.');
             expect(res.body.location).to.equal('username');
           });
@@ -196,31 +162,21 @@ describe.only('Noteful API - Users', function () {
       it('Should reject users with password less than 8 characters', function(){
         return chai.request(app)
           .post('/api/users')
-          .send({emptyPass, firstName, lastName, username})
-          .catch(err =>{
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password:emptyPass, fullname, username})
+          .then(res =>{
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
-            expect(res.body.message).to.equal('password has to be at least 8 characters long');
+            // expect(res.body.reason).to.equal('ValidationError');
+            expect(res.body.message).to.equal('password has to be at least 8 characters long.');
             expect(res.body.location).to.equal('password');
           });
       });
       it('Should reject users with password greater than 72 characters', function() {
         return chai.request(app)
           .post('/api/users')
-          .send({overLimitPass, firstName, lastName, username})
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
+          .send({password: overLimitPass, firstName, lastName, username})
+          .then(res => {
             expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+            // expect(res.body.reason).to.equal('ValidationError');
             expect(res.body.message).to.equal('password has to be at most 72 characters');
             expect(res.body.location).to.equal('password');
           });
@@ -230,14 +186,8 @@ describe.only('Noteful API - Users', function () {
           .then(() => {
             return chai.request(app).post('/api/users').send({username, password, firstName, lastName});
           })
-          .catch(err => {
-            if(err instanceof chai.AssertionError){
-              throw err;
-            }
-
-            const res = err.response;
-            expect(res).to.have.status(422);
-            expect(res.body.reason).to.equal('ValidationError');
+          .then(res => {
+            expect(res).to.have.status(400);
             expect(res.body.message).to.equal('The username already exists');
             expect(res.body.location).equal('username');
           });
@@ -253,36 +203,36 @@ describe.only('Noteful API - Users', function () {
       });
     });
 
-    describe('GET', function () {
-      it('Should return an empty array initially', function () {
-        return chai.request(app).get('/api/users')
-          .then(res => {
-            expect(res).to.have.status(200);
-            expect(res.body).to.be.an('array');
-            expect(res.body).to.have.length(0);
-          });
-      });
-      it('Should return an array of users', function () {
-        const testUser0 = {
-          username: `${username}`,
-          password: `${password}`,
-          fullname: ` ${fullname} `
-        };
-        const testUser1 = {
-          username: `${username}1`,
-          password: `${password}1`,
-          fullname: `${fullname}1`
-        };
-        const testUser2 = {
-          username: `${username}2`,
-          password: `${password}2`,
-          fullname: `${fullname}2`
-        };
+    // describe('GET', function () {
+    //   it('Should return an empty array initially', function () {
+    //     return chai.request(app).get('/api/users')
+    //       .then(res => {
+    //         expect(res).to.have.status(200);
+    //         expect(res.body).to.be.an('array');
+    //         expect(res.body).to.have.length(0);
+    //       });
+    //   });
+    //   it('Should return an array of users', function () {
+    //     const testUser0 = {
+    //       username: `${username}`,
+    //       password: `${password}`,
+    //       fullname: ` ${fullname} `
+    //     };
+    //     const testUser1 = {
+    //       username: `${username}1`,
+    //       password: `${password}1`,
+    //       fullname: `${fullname}1`
+    //     };
+    //     const testUser2 = {
+    //       username: `${username}2`,
+    //       password: `${password}2`,
+    //       fullname: `${fullname}2`
+    //     };
 
-        /**
-         * CREATE THE REQUEST AND MAKE ASSERTIONS
-         */
-      });
-    });
+    //     /**
+    //      * CREATE THE REQUEST AND MAKE ASSERTIONS
+    //      */
+    //   });
+    // });
   });
 });

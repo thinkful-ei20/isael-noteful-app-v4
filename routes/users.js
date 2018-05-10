@@ -17,6 +17,7 @@ router.post('/', (req, res, next) => {
   if(missingField){
     const err = new Error(`Missing ${missingField} in request body`);
     err.status = 422;
+    err.location = missingField;
     return next(err);
   }
 
@@ -27,6 +28,7 @@ router.post('/', (req, res, next) => {
   if(notStringField){
     const err = new Error(`${notStringField} has to be a string`);
     err.status = 422;
+    err.location = notStringField;
     return next(err);
   }
 
@@ -37,6 +39,7 @@ router.post('/', (req, res, next) => {
   if(whiteSpace){
     const err = new Error(`${whiteSpace} has spaces.`);
     err.status = 422;
+    err.location = whiteSpace;
     return next(err);
   }
 
@@ -45,20 +48,23 @@ router.post('/', (req, res, next) => {
   if(userMinimum < 1){
     const err = new Error('username has to be at least one character.');
     err.status = 422;
+    err.location = 'username';
     return next(err);
   }
 
   const passValidation = password.length;
 
   if(passValidation < 8){
-    const err = new Error('password has to be at least 8 character long');
+    const err = new Error('password has to be at least 8 characters long.');
     err.status = 422;
+    err.location = 'password';
     return next(err);
   }
 
   if(passValidation > 72){
     const err = new Error('password has to be at most 72 characters');
     err.status = 422;
+    err.location = 'password';
     return next(err);
   }
 
@@ -80,6 +86,7 @@ router.post('/', (req, res, next) => {
       if(err.code === 11000){
         err = new Error('The username already exists');
         err.status = 400;
+        err.location = 'username';
       }
       next(err);
     });
