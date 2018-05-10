@@ -14,7 +14,7 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-describe.only('Noteful API - Users', function () {
+describe('Noteful API - Users', function () {
   const username = 'exampleUser';
   const password = 'examplePass';
   const fullname = 'Example User';
@@ -48,7 +48,7 @@ describe.only('Noteful API - Users', function () {
     return mongoose.disconnect();
   });
 
-  describe.only('/api/users', function () {
+  describe('/api/users', function () {
     describe('POST', function () {
       it('Should create a new user', function () {
         const testUser = { username, password, fullname };
