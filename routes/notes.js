@@ -182,7 +182,8 @@ router.put('/:id', (req, res, next) => {
       }
     });
   }
-
+  if(folderId === '') newNote.folderId = undefined;
+  
   const valFolderIdPromise = validateFolderId(userId, newNote.folderId);
   const valTagIdPromise = Promise.all(tags.map(tag => validateTagsId(userId, tag)));
   Promise.all([valFolderIdPromise, valTagIdPromise])
