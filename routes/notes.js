@@ -91,7 +91,7 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const { title, content, folderId, tags = [] } = req.body;
+  let { title, content, tags = [], folderId } = req.body;
   const userId = req.user.id;
   const newNote = { title, content, userId, folderId, tags };
 
@@ -118,7 +118,7 @@ router.post('/', (req, res, next) => {
     });
   }
 
-  
+  if(folderId === '') newNote.folderId = undefined;
 
   const valFolderIdPromise = validateFolderId(userId, newNote.folderId);
 
