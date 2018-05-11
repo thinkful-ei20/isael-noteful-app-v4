@@ -50,8 +50,8 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
   const { name } = req.body;
-  const { id: user } = req.user;
-  const newTag = { name };
+  const userId = req.user.id;
+  const newTag = { name, userId };
 
   /***** Never trust users - validate input *****/
   if (!name) {

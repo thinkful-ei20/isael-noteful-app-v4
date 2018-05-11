@@ -185,11 +185,11 @@ router.put('/:id', (req, res, next) => {
 
   const valFolderIdPromise = validateFolderId(userId, newNote.folderId);
   const valTagIdPromise = Promise.all(tags.map(tag => validateTagsId(userId, tag)));
-
   Promise.all([valFolderIdPromise, valTagIdPromise])
-    .then(() => Note.findOneAndUpdate({userId, _id: id}, { newNote }, { new: true }))
+    .then(() => Note.findOneAndUpdate({_id: id, userId},  newNote , { new: true }))
     .then(result => {
       if (result) {
+        console.log(newNote);
         res.json(result);
       } else {
         next();
